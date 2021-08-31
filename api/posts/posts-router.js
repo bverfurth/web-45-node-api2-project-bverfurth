@@ -64,28 +64,7 @@ router.post("/", (req, res) => {
   }
 });
 
-// #4
-router.delete("/:id", async (req, res) => {
-  try {
-    const post = await Post.findById(req.params.id);
-    if (!post) {
-      res.status(404).json({
-        message: "The post with the specified ID does not exist",
-      });
-    } else {
-      await Post.remove(req.params.id);
-      res.json(post);
-    }
-  } catch (err) {
-    res.status(500).json({
-      message: "The post could not be removed",
-      err: err.message,
-      stack: err.stack,
-    });
-  }
-});
-
-// #5
+// #4 PUT API Posts
 router.put("/:id", (req, res) => {
   const { title, contents } = req.body;
   if (!title || !contents) {
@@ -121,8 +100,8 @@ router.put("/:id", (req, res) => {
   }
 });
 
-// #6
-router.get("/:id/messages", async (req, res) => {
+// #5 DELETE API Posts
+router.delete("/:id", async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) {
@@ -130,16 +109,39 @@ router.get("/:id/messages", async (req, res) => {
         message: "The post with the specified ID does not exist",
       });
     } else {
-      const messages = await Post.findPostComments(req.params.id);
-      res.json(messages);
+      await Post.remove(req.params.id);
+      res.json(post);
     }
   } catch (err) {
     res.status(500).json({
-      message: "The comments information could not be retrieved",
+      message: "The post could not be removed",
       err: err.message,
       stack: err.stack,
     });
   }
+});
+
+// #6 GET API Posts Comments
+router.get("/:id/comments", async (req, res) => {
+  try {
+    const data = await Post.findById(req.params.id);
+    !data
+      ? res.status(404).json({
+          message: "The post with the specified ID does not exist",
+        })
+      : Post.findPostComments(req.params.id).then((data) => {
+          res.status(200).json(data);
+        });
+  } catch {
+    res.status(400);
+  }
+});
+
+// CATCH ALL
+router.use("*", (req, res) => {
+  res.status(404).json({
+    message: "Things happened here",
+  });
 });
 
 module.exports = router;
